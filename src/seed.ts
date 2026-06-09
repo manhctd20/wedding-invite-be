@@ -22,10 +22,13 @@ const ds = new DataSource({
 })
 
 const TEMPLATES = [
-  { slug: 'bloom', label: 'Bloom', description: 'Lãng mạn, tinh tế — tông kem và hồng nhẹ', palette: ['#FAFAF7', '#C4A882', '#2C2420'], isPremium: false, sortOrder: 1 },
-  { slug: 'noir', label: 'Noir', description: 'Sang trọng tối — đen và vàng champagne', palette: ['#0A0A0A', '#C9A84C', '#F0EBE0'], isPremium: true, sortOrder: 2 },
-  { slug: 'minimal', label: 'Minimal', description: 'Hiện đại, sạch sẽ — trắng và xám', palette: ['#FFFFFF', '#4A4A4A', '#1A1A1A'], isPremium: false, sortOrder: 3 },
-  { slug: 'velvet', label: 'Velvet', description: 'Huyền bí, lãng mạn — tím đêm và vàng ánh', palette: ['#100D1A', '#C9924A', '#F0E8DC'], isPremium: true, sortOrder: 4 },
+  { slug: 'bloom',     label: 'Bloom',     description: 'Lãng mạn, tinh tế — tông kem và hồng nhẹ',         palette: ['#FAFAF7', '#C4A882', '#2C2420'], isPremium: false, sortOrder: 1 },
+  { slug: 'noir',      label: 'Noir',      description: 'Sang trọng tối — đen và vàng champagne',            palette: ['#0A0A0A', '#C9A84C', '#F0EBE0'], isPremium: true,  sortOrder: 2 },
+  { slug: 'minimal',   label: 'Minimal',   description: 'Hiện đại, sạch sẽ — trắng và xám',                  palette: ['#FFFFFF', '#4A4A4A', '#1A1A1A'], isPremium: false, sortOrder: 3 },
+  { slug: 'velvet',    label: 'Velvet',    description: 'Huyền bí, lãng mạn — tím đêm và vàng ánh',          palette: ['#100D1A', '#C9924A', '#F0E8DC'], isPremium: true,  sortOrder: 4 },
+  { slug: 'heritage',  label: 'Heritage',  description: 'Truyền thống, trang trọng — đỏ đô và vàng đồng',    palette: ['#FAF3E0', '#D4AF37', '#4A1C1C'], isPremium: false, sortOrder: 5 },
+  { slug: 'garden',    label: 'Garden',    description: 'Tươi mát, thiên nhiên — xanh rêu và mộc mạc',       palette: ['#F7FCF5', '#6B8E7B', '#1C3B2B'], isPremium: false, sortOrder: 6 },
+  { slug: 'cinematic', label: 'Cinematic', description: 'Điện ảnh, hiện đại — đen tuyền, chữ nổi bật',       palette: ['#111111', '#F5F5F5', '#888888'], isPremium: true,  sortOrder: 7 },
 ]
 
 async function main() {
@@ -65,15 +68,20 @@ async function main() {
     console.log(`✅ Demo couple created: ${coupleEmail} / couple123`)
   }
 
-  // Templates
-  const count = await tplRepo.count()
-  if (count === 0) {
-    for (const t of TEMPLATES) {
+  // Templates — upsert: thêm mới nếu chưa có, bỏ qua nếu đã có
+  let seeded = 0
+  for (const t of TEMPLATES) {
+    const existing = await tplRepo.findOne({ where: { slug: t.slug } })
+    if (!existing) {
       await tplRepo.save(tplRepo.create({ ...t, isActive: true, theme: null }))
+      console.log(`✅ Template added: ${t.slug}`)
+      seeded++
     }
-    console.log(`✅ Seeded ${TEMPLATES.length} templates`)
+  }
+  if (seeded === 0) {
+    console.log('ℹ️  All templates already seeded')
   } else {
-    console.log('ℹ️  Templates already seeded')
+    console.log(`✅ Seeded ${seeded} new template(s)`)
   }
 
   await ds.destroy()

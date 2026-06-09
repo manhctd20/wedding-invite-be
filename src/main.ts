@@ -10,7 +10,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api')
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }))
 
-  const corsOrigin = config.get<string>('CORS_ORIGIN') || 'http://localhost:5173'
+  const corsOrigin = config.get<string>('CORS_ORIGIN') || 'http://localhost:5173,http://localhost:5174'
   app.enableCors({
     origin: corsOrigin.split(',').map(s => s.trim()),
     credentials: true,
