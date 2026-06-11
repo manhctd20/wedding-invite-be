@@ -29,6 +29,7 @@ const TEMPLATES = [
   { slug: 'heritage',  label: 'Heritage',  description: 'Truyền thống, trang trọng — đỏ đô và vàng đồng',    palette: ['#FAF3E0', '#D4AF37', '#4A1C1C'], isPremium: false, sortOrder: 5 },
   { slug: 'garden',    label: 'Garden',    description: 'Tươi mát, thiên nhiên — xanh rêu và mộc mạc',       palette: ['#F7FCF5', '#6B8E7B', '#1C3B2B'], isPremium: false, sortOrder: 6 },
   { slug: 'cinematic', label: 'Cinematic', description: 'Điện ảnh, hiện đại — đen tuyền, chữ nổi bật',       palette: ['#111111', '#F5F5F5', '#888888'], isPremium: true,  sortOrder: 7 },
+  { slug: 'cinelove',  label: 'Cinelove',  description: 'Glass UI mobile-first — bottom sheet hộp quà & lời chúc', palette: ['#1B1422', '#E8B4A0', '#F5E9DC'], isPremium: true,  sortOrder: 8 },
 ]
 
 async function main() {
