@@ -1,0 +1,68 @@
+# Deploy production: postgres + backend (NestJS) + web (FE build + nginx reverse-proxy).
+#
+# YÊU CẦU BỐ TRÍ THƯ MỤC — 2 repo phải nằm CẠNH NHAU:
+#   apps/
+#   ├── wedding-invite-be/   <- chạy compose từ đây (chứa file này)
+#   └── wedding-invite/      <- FE, build context = ../wedding-invite
+#
+# Chạy:  docker compose -f docker-compose.prod.yml up -d --build
+# Truy cập:  http://localhost   (đổi cổng bằng WEB_PORT trong .env)
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: wedding-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - wedding_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Không map cổng ra host: chỉ backend trong network cần truy cập.
+    # Muốn debug bằng DBeaver từ Windows thì bỏ comment 2 dòng dưới:
+    # ports:
+    #   - "5544:5432"
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wedding-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 4000
+      DB_HOST: postgres          # tên service = hostname trong docker network
+      DB_PORT: 5432              # cổng NỘI BỘ của postgres (không phải 5544)
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES: ${JWT_EXPIRES:-7d}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+    expose:
+      - "4000"                   # chỉ mở trong network, ra ngoài đi qua nginx
+
+  web:
+    build:
+      context: ../wedding-invite   # <-- repo FE nằm cạnh
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api         # cùng origin, nginx proxy /api -> backend
+    container_name: wedding-web
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${WEB_PORT:-80}:80"
+
+volumes:
+  wedding_pgdata:
